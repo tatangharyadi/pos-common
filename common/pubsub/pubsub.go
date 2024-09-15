@@ -2,10 +2,7 @@ package pubsub
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"sync"
-	"time"
 
 	"cloud.google.com/go/pubsub"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -22,6 +19,8 @@ type PubSubMessage struct {
 }
 
 func PublishProtoMessages(projectID string, topicID string, payload protoreflect.ProtoMessage) error {
+	log.Printf("PublishProtoMessages: projectID=%v, topicID=%v", projectID, topicID)
+
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
@@ -29,7 +28,6 @@ func PublishProtoMessages(projectID string, topicID string, payload protoreflect
 		return err
 	}
 
-	// Get the topic encoding type.
 	t := client.Topic(topicID)
 	cfg, err := t.Config(ctx)
 	if err != nil {
@@ -68,38 +66,7 @@ func PublishProtoMessages(projectID string, topicID string, payload protoreflect
 		log.Printf("result.Get: %v", err)
 		return err
 	}
-	return nil
-}
 
-func SubscribeProtoMessages(projectID string, subID string, payload protoreflect.ProtoMessage) error {
-	ctx := context.Background()
-	client, err := pubsub.NewClient(ctx, projectID)
-	if err != nil {
-		return fmt.Errorf("pubsub.NewClient: %v", err)
-	}
-
-	sub := client.Subscription(subID)
-	ctx2, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-
-	var mu sync.Mutex
-	sub.Receive(ctx2, func(ctx context.Context, msg *pubsub.Message) {
-		mu.Lock()
-		defer mu.Unlock()
-		encoding := msg.Attributes["googclient_schemaencoding"]
-
-		if encoding == "BINARY" {
-			if err := proto.Unmarshal(msg.Data, payload); err != nil {
-				return
-			}
-		} else if encoding == "JSON" {
-			if err := protojson.Unmarshal(msg.Data, payload); err != nil {
-				return
-			}
-		} else {
-			return
-		}
-		msg.Ack()
-	})
+	log.Printf("Published message: %v encoding: %v", encoding, string(msg))
 	return nil
 }
