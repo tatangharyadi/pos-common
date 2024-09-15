@@ -3,6 +3,7 @@ package pubsub
 import (
 	"context"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -24,6 +25,7 @@ func PublishProtoMessages(projectID string, topicID string, payload protoreflect
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
+		log.Printf("pubsub.NewClient: %v", err)
 		return err
 	}
 
@@ -31,6 +33,7 @@ func PublishProtoMessages(projectID string, topicID string, payload protoreflect
 	t := client.Topic(topicID)
 	cfg, err := t.Config(ctx)
 	if err != nil {
+		log.Printf("topic.Config err: %v", err)
 		return err
 	}
 	encoding := cfg.SchemaSettings.Encoding
@@ -40,6 +43,7 @@ func PublishProtoMessages(projectID string, topicID string, payload protoreflect
 	case pubsub.EncodingBinary:
 		msg, err = proto.Marshal(payload)
 		if err != nil {
+			log.Printf("proto.Marshal err: %v", err)
 			return err
 		}
 	case pubsub.EncodingJSON:
@@ -48,10 +52,12 @@ func PublishProtoMessages(projectID string, topicID string, payload protoreflect
 		}
 		msg, err = pjson.Marshal(payload)
 		if err != nil {
+			log.Printf("protojson.Marshal err: %v", err)
 			return err
 		}
 	default:
-		return nil
+		log.Printf("invalid encoding: %v", encoding)
+		return err
 	}
 
 	result := t.Publish(ctx, &pubsub.Message{
@@ -59,6 +65,7 @@ func PublishProtoMessages(projectID string, topicID string, payload protoreflect
 	})
 	_, err = result.Get(ctx)
 	if err != nil {
+		log.Printf("result.Get: %v", err)
 		return err
 	}
 	return nil
