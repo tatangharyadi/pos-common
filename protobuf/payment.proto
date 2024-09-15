@@ -1,0 +1,40 @@
+syntax = "proto3";
+package pos.service.v0;
+option go_package = "github.com/tatangharyadi/pos-common/protobuf/message";
+
+message QrPayment{
+    message Notification {
+        string title = 1 [json_name="title"];
+        string body = 2 [json_name="body"];
+    }
+    message Data {
+        message Metadata {
+            string order_id = 1 [json_name="order_id"];
+            string shift_id = 2 [json_name="shift_id"];
+            string account_email = 3 [json_name="account_email"];
+        }
+        message PaymentDetail {
+            string receipt_id = 1 [json_name="receipt_id"];
+            string source = 2 [json_name="source"];
+            string name = 3 [json_name="name"];
+            string account_details = 4 [json_name="account_details"];
+        }
+        string id = 1 [json_name="id"];
+        string business_id = 2 [json_name="business_id"];
+        string currency = 3 [json_name="currency"];
+        float amount = 4 [json_name="amount"];
+        string status = 5 [json_name="status"];
+        string created = 6 [json_name="created"];
+        string qr_id = 7 [json_name="qr_id"];
+        string qr_string = 8 [json_name="qr_string"];
+        string reference_id = 9 [json_name="reference_id"];
+        string type = 10 [json_name="type"];
+        string channel_code = 11 [json_name="channel_code"];
+        string expires_at = 12 [json_name="expires_at"];
+        Metadata metadata = 13 [json_name="metadata"];
+        PaymentDetail payment_detail = 14 [json_name="payment_detail"];
+    }
+    string token = 1 [json_name="token"];
+    Notification notification = 2 [json_name="notification"];
+    Data data = 3 [json_name="data"];
+}

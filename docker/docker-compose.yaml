@@ -1,0 +1,15 @@
+services:
+  protogen:
+    build:
+      context: "."
+      args:
+        PLATFORM: ${PLATFORM}
+        PROTOC_VERSION: ${PROTOC_VERSION}
+    working_dir: "/source"
+    volumes:
+      - "../protobuf:/source"
+    command: bash -c "
+        protoc *.proto --proto_path=.
+         --go_out=. --go_opt=module=github.com/tatangharyadi/pos-common/protobuf
+         --go-grpc_out=. --go-grpc_opt=module=github.com/tatangharyadi/pos-common/protobuf
+        "
